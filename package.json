@@ -1,11 +1,11 @@
 {
-  "name": "boundless-sdk-template",
+  "name": "regional-monitoring",
   "version": "1.0.0",
-  "description": "Base template for boundless sdk",
+  "description": "Display normalized choropleth maps in the browser",
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git://github.com/boundlessgeo/sdk-template.git"
+    "url": "git://github.com/ahocevar/regional-monitoring.git"
   },
   "scripts": {
     "start": "npm run watch-js & npm run serve",
@@ -14,11 +14,10 @@
     "watch-js": "node_modules/.bin/watchify index.js -o build/app.js -dv",
     "serve": "node utils/debug.js"
   },
-  "author": "Boundless",
-  "license": "ISC",
+  "author": "Andreas Hocevar",
+  "license": "MIT",
   "devDependencies": {
     "browserify": "^9.0.3",
-    "http-proxy": "^1.8.1",
     "minimist": "^1.1.0",
     "node-static": "^0.7.6",
     "watchify": "^2.4.0"

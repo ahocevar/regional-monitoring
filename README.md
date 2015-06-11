@@ -1,4 +1,4 @@
-# SDK base template
+# Regional Monitoring
 
 ## Install deps
 `npm install`
