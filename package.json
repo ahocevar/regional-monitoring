@@ -11,7 +11,7 @@
     "start": "cp node_modules/shpjs/dist/shp.min.js build/ & npm run watch-js & npm run serve",
     "package": "npm run dist && zip -r build/regional-monitoring.zip dist/*",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dist": "rm -Rf dist && mkdir dist && mkdir dist/build && cp -R build dist/ && npm run minify-js && cp -R index.html assets dist/",
+    "dist": "rm -Rf dist && mkdir dist && mkdir dist/build && cp node_modules/shpjs/dist/shp.min.js dist/build/ && npm run minify-js && cp -R index.html assets dist/",
     "watch-js": "node_modules/.bin/watchify -t -g cssify index.js -dv -o build/app.js",
     "minify-js": "node_modules/.bin/browserify -t -g cssify index.js | node_modules/.bin/uglifyjs > dist/build/app.js",
     "serve": "node utils/debug.js"
