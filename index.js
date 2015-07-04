@@ -46,7 +46,7 @@ var empty = [new ol.style.Style({
   })
 })];
 dataLayer.setStyle(function(feature, resolution) {
-  var normalizedData = feature.get('Normalized Data');
+  var normalizedData = feature.get('NORMALIZED DATA');
   if (!normalizedData) {
     return empty;
   }
@@ -128,7 +128,8 @@ configForm.addEventListener('submit', function() {
   dataLayer.getSource().getFeatures().forEach(function(feature) {
     var item = csvData[feature.get(shpKey)];
     if (item) {
-      feature.set('Normalized Data', (item.data - avg) / stdDev);
+      feature.set('DATA', item.data);
+      feature.set('NORMALIZED DATA', (item.data - avg) / stdDev);
     }
   });
 });
