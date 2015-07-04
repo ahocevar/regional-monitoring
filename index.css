@@ -50,6 +50,10 @@ html, body, #map {
   top: 2px;
   right: 8px;
 }
+#popup-content {
+  max-height: 15em;
+  overflow: scroll;
+}
 #popup-content div {
   white-space: nowrap;
 }
