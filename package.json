@@ -8,21 +8,29 @@
     "url": "git://github.com/ahocevar/regional-monitoring.git"
   },
   "scripts": {
-    "start": "npm run watch-js & npm run serve",
-    "package": "node utils/build.js",
+    "start": "cp node_modules/shpjs/dist/shp.min.js build/ & npm run watch-js & npm run serve",
+    "package": "npm run dist && zip -r build/regional-monitoring.zip dist/*",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch-js": "node_modules/.bin/watchify index.js -o build/app.js -dv",
+    "dist": "rm -Rf dist && mkdir dist && mkdir dist/build && cp -R build dist/ && npm run minify-js && cp -R index.html assets dist/",
+    "watch-js": "node_modules/.bin/watchify -t -g cssify index.js -dv -o build/app.js",
+    "minify-js": "node_modules/.bin/browserify -t -g cssify index.js | node_modules/.bin/uglifyjs > dist/build/app.js",
     "serve": "node utils/debug.js"
   },
   "author": "Andreas Hocevar",
   "license": "MIT",
   "devDependencies": {
     "browserify": "^9.0.3",
+    "cssify": "^0.7.0",
+    "uglify-js": "^2.4.23",
     "minimist": "^1.1.0",
     "node-static": "^0.7.6",
     "watchify": "^2.4.0"
   },
   "dependencies": {
-    "openlayers": "^3.2.1"
+    "bootstrap": "^3.2.0",
+    "catiline": "^2.9.3",
+    "openlayers": "^3.6.0",
+    "shpjs": "^3.1.6",
+    "simple-statistics": "^0.9.2"
   }
 }

@@ -1,19 +1,42 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Boundless Map App</title>
-  <link rel="stylesheet" href="node_modules/openlayers/css/ol.css">
-  <style type="text/css" media="screen">
-    html, body, #map {
-      margin: 0;
-      height: 100%;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <script src="build/app.js" type="text/javascript" charset="utf-8"></script>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <title>Regional Monitoring</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Regional Monitoring</a>
+      </div>
+      <form id="config" class="navbar-form navbar-right" action="javascript:void(0)">
+        <div class="form-group">
+          <select disabled id="shpkey" class="form-control">
+            <option>Drag shp .zip to map</option>
+            <option>Select shp merge field</option>
+          </select>
+          <select disabled id="csvkey" class="form-control">
+            <option>Drag .csv to map</option>
+            <option>Select csv merge field</option>
+          </select>
+          <div class="input-group">
+            <input id="formula" type="text" class="form-control" placeholder="Data value">
+            <span class="input-group-btn">
+              <button disabled id="renderbutton" class="btn btn-default" type="submit">Render!</button>
+            </span>
+          </div>
+          &nbsp;
+        </div>
+      </form>
+    </nav>
+    <div id="map">
+      <!-- GetLegendGraphic, customized with some LEGEND_OPTIONS -->
+      <img class="legend img-rounded" src="assets/legend.png">
+    </div>
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer">✖</a>
+      <div id="popup-content"></div>
+    </div>
+    <script src="build/app.js" type="text/javascript" charset="utf-8"></script>
+  </body>
 </html>
