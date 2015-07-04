@@ -91,52 +91,72 @@ function populateFields(select, fields) {
 }
 
 var formulaField = document.getElementById('formula');
-var renderButton = document.getElementById('renderbutton');
 var configForm = document.getElementById('config');
 
 configForm.addEventListener('submit', function() {
-  var csvKey = csvDropdown.options[csvDropdown.selectedIndex].value;
-  var shpKey = shpDropdown.options[shpDropdown.selectedIndex].value;
+  if (renderButton.disabled) {
+    return;
+  }
   var formula = formulaField.value;
-  var dataIndex = csvFields.indexOf(csvKey);
-  var csvData = {};
+  var features = dataLayer.getSource().getFeatures();
   var values = [];
-  var csvValues, field, line, item, value;
-  for (var i = 0, ii = csvLines.length; i < ii; ++i) {
-    line = csvLines[i];
-    if (!line) {
-      continue;
-    }
-    csvValues = line.split(';');
-    item = {};
-    for (var j = 0, jj = csvFields.length; j < jj; ++j) {
-      field = csvFields[j];
-      item[field] = csvValues[j];
-      if (field == csvKey) {
-        value = csvValues[dataIndex];
-        csvData[csvValues[j]] = item;
-      }
-    }
-    with (item) {
+  features.forEach(function(feature) {
+    with (feature.getProperties()) {
       value = Number(eval(formula));
     }
-    item.data = value;
     values.push(value);
-  }
+    feature.unset('DATA');
+    feature.unset('NORMALIZED DATA');
+    feature.set('DATA', value);
+  });
   var stdDev = ss.standard_deviation(values);
   var avg = ss.average(values);
-  dataLayer.getSource().getFeatures().forEach(function(feature) {
-    var item = csvData[feature.get(shpKey)];
-    if (item) {
-      feature.set('DATA', item.data);
-      feature.set('NORMALIZED DATA', (item.data - avg) / stdDev);
+  features.forEach(function(feature) {
+    var data = feature.get('DATA');
+    if (data) {
+      feature.set('NORMALIZED DATA', (data - avg) / stdDev);
     }
   });
 });
 
 function handleFieldSelect(e) {
-  if (shpDropdown.selectedIndex > 0 && csvDropdown.selectedIndex > 0) {
-    renderButton.disabled = false;
+  var csvData, item;
+  if (csvDropdown.selectedIndex > 0) {
+    var csvKey = csvDropdown.options[csvDropdown.selectedIndex].value;
+    var dataIndex = csvFields.indexOf(csvKey);
+    csvData = {};
+    var values = [];
+    var csvValues, field, line, value;
+    csvLines.forEach(function(line) {
+      if (!line) {
+        return;
+      }
+      csvValues = line.split(';');
+      item = {};
+      for (var j = 0, jj = csvFields.length; j < jj; ++j) {
+        field = csvFields[j];
+        item[field] = csvValues[j];
+        if (field == csvKey) {
+          value = csvValues[dataIndex];
+          csvData[csvValues[j]] = item;
+        }
+      }
+    });
+  }
+  if (shpDropdown.selectedIndex > 0) {
+    if (csvData) {
+      var shpKey = shpDropdown.options[shpDropdown.selectedIndex].value;
+      var features = dataLayer.getSource().getFeatures();
+      features.forEach(function(feature) {
+        var key = feature.get(shpKey);
+        item = csvData[key];
+        if (item) {
+          for (var j in item) {
+            feature.set(j, item[j]);
+          }
+        }
+      });
+    }
   }
 }
 
@@ -163,6 +183,7 @@ var shpWorker = cw(function(data) {
 
 var shpDropped = false;
 var shpDropdown = document.getElementById('shpkey');
+var renderButton = document.getElementById('renderbutton');
 shpDropdown.addEventListener('change', handleFieldSelect);
 function handleShapeFile(file) {
   shpDropped = true;
@@ -176,6 +197,7 @@ function handleShapeFile(file) {
               {featureProjection: olMap.getView().getProjection()}));
       var fields = source.getFeatures()[0].getKeys();
       populateFields(shpDropdown, fields);
+      renderButton.disabled = false;
       olMap.getView().fit(source.getExtent(), olMap.getSize());
     });
   };
