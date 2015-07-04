@@ -5,7 +5,6 @@
  */
 
 var http = require('http'),
-    httpProxy = require('http-proxy'),
     staticServer = require('node-static'),
     argv = require('minimist')(process.argv);
 
