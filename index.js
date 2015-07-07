@@ -79,20 +79,9 @@ olMap = new ol.Map({
   })
 });
 
-function populateFields(select, fields) {
-  select.removeChild(select.firstElementChild);
-  select.disabled = false;
-  fields.forEach(function(field) {
-    var option = document.createElement('option');
-    option.value = field;
-    option.innerHTML = field;
-    select.appendChild(option);
-  });
-}
-
+// Handle user input
 var formulaField = document.getElementById('formula');
 var configForm = document.getElementById('config');
-
 configForm.addEventListener('submit', function() {
   if (renderButton.disabled) {
     return;
@@ -118,7 +107,6 @@ configForm.addEventListener('submit', function() {
     }
   });
 });
-
 function handleFieldSelect(e) {
   var csvData, item;
   if (csvDropdown.selectedIndex > 0) {
@@ -160,6 +148,11 @@ function handleFieldSelect(e) {
   }
 }
 
+// Handle drag & drop for CSV and Shape ZIP files
+var dropbox = document.getElementById('map');
+dropbox.addEventListener("dragenter", stop, false);
+dropbox.addEventListener("dragover", stop, false);
+dropbox.addEventListener("drop", drop, false);
 var csvDropped = false;
 var csvDropdown = document.getElementById('csvkey');
 var csvFields, csvLines;
@@ -180,7 +173,6 @@ var shpWorker = cw(function(data) {
   importScripts('build/shp.min.js');
   return shp.parseZip(data);
 });
-
 var shpDropped = false;
 var shpDropdown = document.getElementById('shpkey');
 var renderButton = document.getElementById('renderbutton');
@@ -223,12 +215,18 @@ function drop(e) {
     }
   }
 }
-var dropbox = document.getElementById('map');
-dropbox.addEventListener("dragenter", stop, false);
-dropbox.addEventListener("dragover", stop, false);
-dropbox.addEventListener("drop", drop, false);
+function populateFields(select, fields) {
+  select.removeChild(select.firstElementChild);
+  select.disabled = false;
+  fields.forEach(function(field) {
+    var option = document.createElement('option');
+    option.value = field;
+    option.innerHTML = field;
+    select.appendChild(option);
+  });
+}
 
-// Elements that make up the popup.
+// Popup overlay for feature info.
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
@@ -237,12 +235,8 @@ function closePopup() {
   closer.blur();
   return false;
 }
-
-// Add a click handler to hide the popup.
 closer.onclick = closePopup;
-
-// Create an overlay to anchor the popup to the map.
-var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
+var overlay = new ol.Overlay({
   element: container,
   autoPan: true,
   autoPanAnimation: {
@@ -252,7 +246,7 @@ var overlay = new ol.Overlay(/** @type {olx.OverlayOptions} */ ({
 }));
 overlay.setMap(olMap);
 
-// Handle map clicks to send a GetFeatureInfo request and open the popup
+// Handle map clicks to show feature info in the popup
 olMap.on('singleclick', function(evt) {
   var info;
   olMap.forEachFeatureAtPixel(evt.pixel, function(feature) {
