@@ -45,7 +45,7 @@ var empty = [new ol.style.Style({
     width: 1.25
   })
 })];
-dataLayer.setStyle(function(feature, resolution) {
+dataLayer.setStyle(function(feature) {
   var normalizedData = feature.get('NORMALIZED DATA');
   if (!normalizedData) {
     return empty;
@@ -69,7 +69,7 @@ dataLayer.setStyle(function(feature, resolution) {
 });
 
 // Map object
-olMap = new ol.Map({
+var olMap = new ol.Map({
   target: 'map',
   renderer: 'canvas',
   layers: [baseLayer, dataLayer],
@@ -80,8 +80,12 @@ olMap = new ol.Map({
 });
 
 // Handle user input
+var csvDropdown = document.getElementById('csvkey');
+var shpDropdown = document.getElementById('shpkey');
+var renderButton = document.getElementById('renderbutton');
 var formulaField = document.getElementById('formula');
 var configForm = document.getElementById('config');
+var csvFields;
 configForm.addEventListener('submit', function() {
   if (renderButton.disabled) {
     return;
@@ -90,9 +94,12 @@ configForm.addEventListener('submit', function() {
   var features = dataLayer.getSource().getFeatures();
   var values = [];
   features.forEach(function(feature) {
+    var value;
+    /*eslint-disable no-with, no-eval */
     with (feature.getProperties()) {
       value = Number(eval(formula));
     }
+    /*eslint-enable no-with, no-eval */
     values.push(value);
     feature.unset('DATA');
     feature.unset('NORMALIZED DATA');
@@ -107,14 +114,13 @@ configForm.addEventListener('submit', function() {
     }
   });
 });
-function handleFieldSelect(e) {
+var csvLines;
+function handleFieldSelect() {
   var csvData, item;
   if (csvDropdown.selectedIndex > 0) {
     var csvKey = csvDropdown.options[csvDropdown.selectedIndex].value;
-    var dataIndex = csvFields.indexOf(csvKey);
     csvData = {};
-    var values = [];
-    var csvValues, field, line, value;
+    var csvValues, field;
     csvLines.forEach(function(line) {
       if (!line) {
         return;
@@ -124,8 +130,7 @@ function handleFieldSelect(e) {
       for (var j = 0, jj = csvFields.length; j < jj; ++j) {
         field = csvFields[j];
         item[field] = csvValues[j];
-        if (field == csvKey) {
-          value = csvValues[dataIndex];
+        if (field === csvKey) {
           csvData[csvValues[j]] = item;
         }
       }
@@ -147,16 +152,27 @@ function handleFieldSelect(e) {
     }
   }
 }
+shpDropdown.addEventListener('change', handleFieldSelect);
 
 // Handle drag & drop for CSV and Shape ZIP files
 var dropbox = document.getElementById('map');
-dropbox.addEventListener("dragenter", stop, false);
-dropbox.addEventListener("dragover", stop, false);
-dropbox.addEventListener("drop", drop, false);
 var csvDropped = false;
-var csvDropdown = document.getElementById('csvkey');
-var csvFields, csvLines;
-csvDropdown.addEventListener('change', handleFieldSelect);
+var shpDropped = false;
+var shpWorker = cw(function(data) {
+  /*global importScripts:true */
+  importScripts('build/shp.min.js');
+  return shp.parseZip(data);
+});
+function populateFields(select, fields) {
+  select.removeChild(select.firstElementChild);
+  select.disabled = false;
+  fields.forEach(function(field) {
+    var option = document.createElement('option');
+    option.value = field;
+    option.innerHTML = field;
+    select.appendChild(option);
+  });
+}
 function handleCsvFile(file) {
   csvDropped = true;
   csvDropdown.firstElementChild.innerHTML = 'Loading csv...';
@@ -169,14 +185,6 @@ function handleCsvFile(file) {
   };
   reader.readAsText(file);
 }
-var shpWorker = cw(function(data) {
-  importScripts('build/shp.min.js');
-  return shp.parseZip(data);
-});
-var shpDropped = false;
-var shpDropdown = document.getElementById('shpkey');
-var renderButton = document.getElementById('renderbutton');
-shpDropdown.addEventListener('change', handleFieldSelect);
 function handleShapeFile(file) {
   shpDropped = true;
   shpDropdown.firstElementChild.innerHTML = 'Loading shp...';
@@ -215,27 +223,15 @@ function drop(e) {
     }
   }
 }
-function populateFields(select, fields) {
-  select.removeChild(select.firstElementChild);
-  select.disabled = false;
-  fields.forEach(function(field) {
-    var option = document.createElement('option');
-    option.value = field;
-    option.innerHTML = field;
-    select.appendChild(option);
-  });
-}
+dropbox.addEventListener('dragenter', stop, false);
+dropbox.addEventListener('dragover', stop, false);
+dropbox.addEventListener('drop', drop, false);
+csvDropdown.addEventListener('change', handleFieldSelect);
 
 // Popup overlay for feature info.
 var container = document.getElementById('popup');
 var content = document.getElementById('popup-content');
 var closer = document.getElementById('popup-closer');
-function closePopup() {
-  overlay.setPosition(undefined);
-  closer.blur();
-  return false;
-}
-closer.onclick = closePopup;
 var overlay = new ol.Overlay({
   element: container,
   autoPan: true,
@@ -243,8 +239,14 @@ var overlay = new ol.Overlay({
     duration: 250
   },
   autoPanMargin: 50
-}));
+});
 overlay.setMap(olMap);
+function closePopup() {
+  overlay.setPosition(undefined);
+  closer.blur();
+  return false;
+}
+closer.onclick = closePopup;
 
 // Handle map clicks to show feature info in the popup
 olMap.on('singleclick', function(evt) {
@@ -254,7 +256,7 @@ olMap.on('singleclick', function(evt) {
     var geometryName = feature.getGeometryName();
     info = [];
     for (var i in attrs) {
-      if (attrs.hasOwnProperty(i) && i != geometryName) {
+      if (attrs.hasOwnProperty(i) && i !== geometryName) {
         info.push('<div><b>' + i + '</b>: ' + attrs[i] + '</div>');
       }
     }
