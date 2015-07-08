@@ -3,14 +3,16 @@
   <head>
     <meta charset="utf-8">
     <title>Regional Monitoring</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
   </head>
   <body>
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="navbar-header">
-        <a class="navbar-brand" href="#">Regional Monitoring</a>
+        <a class="navbar-brand" href=".">Regional Monitoring</a>
       </div>
       <form id="config" class="navbar-form navbar-right" action="javascript:void(0)">
         <div class="form-group">
+          <button id="load" title="Load GeoJSON" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span></button>
           <select disabled id="shpkey" class="form-control">
             <option>Drag shp .zip to map</option>
             <option>Select shp merge field</option>
@@ -25,18 +27,43 @@
               <button disabled id="renderbutton" class="btn btn-default" type="submit">Render!</button>
             </span>
           </div>
+          <button id="save" disabled title="Save" class="btn btn-default"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span></button>
           &nbsp;
         </div>
       </form>
     </nav>
     <div id="map">
-      <!-- GetLegendGraphic, customized with some LEGEND_OPTIONS -->
       <img class="legend img-rounded" src="assets/legend.png">
     </div>
     <div id="popup" class="ol-popup">
       <a href="#" id="popup-closer" class="ol-popup-closer">✖</a>
       <div id="popup-content"></div>
     </div>
+    <section class="modal--show" id="modal-login" tabindex="-1" role="dialog" aria-labelledby="label-login" aria-hidden="true">
+      <div class="modal-inner">
+        <div class="modal-content">
+          <h3 id="label-login">Login to GitHub</h3>
+          <form id="login-form" action="javascript:void(0)">
+            <input id="username" type="text" class="form-control" placeholder="Username"><br>
+            <input id="password" type="password" class="form-control" placeholder="Password"><br>
+            <button id="login" type="submit" class="btn btn-default">Login</button>
+          </form>
+        </div>
+      </div>
+      <a href="#!" class="modal-close" title="Close this modal" data-close="Close" data-dismiss="modal">✖</a>
+    </section>
+    <section class="modal--show" id="modal-load" tabindex="-1" role="dialog" aria-labelledby="label-load" aria-hidden="true">
+      <div class="modal-inner">
+        <div class="modal-content">
+          <h3 id="label-login">Load GeoJSON</h3>
+          <form id="load-form" action="javascript:void(0)">
+            <input id="geojsonurl" type="text" class="form-control" placeholder="GeoJSON url"><br>
+            <button id="load" type="submit" class="btn btn-default">Load</button>
+          </form>
+        </div>
+      </div>
+      <a href="#!" class="modal-close" title="Close this modal" data-close="Close" data-dismiss="modal">✖</a>
+    </section>
     <script src="build/app.js" type="text/javascript" charset="utf-8"></script>
   </body>
 </html>

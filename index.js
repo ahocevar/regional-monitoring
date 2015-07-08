@@ -1,4 +1,4 @@
-require('./node_modules/bootstrap/dist/css/bootstrap.min.css');
+require('./node_modules/css-modal/build/modal.css');
 require('./node_modules/openlayers/dist/ol.css');
 require('./index.css');
 
@@ -85,12 +85,24 @@ var shpDropdown = document.getElementById('shpkey');
 var renderButton = document.getElementById('renderbutton');
 var formulaField = document.getElementById('formula');
 var configForm = document.getElementById('config');
-var csvFields;
-configForm.addEventListener('submit', function() {
+var saveButton = document.getElementById('save');
+var loadButton = document.getElementById('load');
+function populateFields(select, fields) {
+  select.removeChild(select.firstElementChild);
+  select.disabled = false;
+  fields.forEach(function(field) {
+    var option = document.createElement('option');
+    option.value = field;
+    option.innerHTML = field;
+    select.appendChild(option);
+  });
+}
+function render() {
   if (renderButton.disabled) {
     return;
   }
   var formula = formulaField.value;
+  saveButton.disabled = !formula;
   var features = dataLayer.getSource().getFeatures();
   var values = [];
   features.forEach(function(feature) {
@@ -113,7 +125,39 @@ configForm.addEventListener('submit', function() {
       feature.set('NORMALIZED DATA', (data - avg) / stdDev);
     }
   });
-});
+}
+var args = {};
+if (window.location.search) {
+  var argsArray = window.location.search.substr(1).split('&');
+  argsArray.forEach(function(arg) {
+    var sides = arg.split('=');
+    args[sides[0]] = decodeURIComponent(sides[1]);
+  });
+  if (args.formula) {
+    formulaField.value = args.formula;
+  }
+  if (args.data) {
+    formulaField.disabled = false;
+    var dataXhr = new XMLHttpRequest();
+    dataXhr.open('GET', args.data);
+    dataXhr.onload = function() {
+      if (dataXhr.status === 200) {
+        var source = dataLayer.getSource();
+        source.addFeatures(new ol.format.GeoJSON().readFeatures(
+            JSON.parse(dataXhr.responseText),
+            {featureProjection: olMap.getView().getProjection()}));
+        olMap.getView().fit(source.getExtent(), olMap.getSize());
+        var fields = source.getFeatures()[0].getKeys();
+        populateFields(shpDropdown, fields);
+        renderButton.disabled = false;
+        render();
+      }
+    };
+    dataXhr.send();
+  }
+}
+var csvFields;
+configForm.addEventListener('submit', render);
 var csvLines;
 function handleFieldSelect() {
   var csvData, item;
@@ -163,16 +207,6 @@ var shpWorker = cw(function(data) {
   importScripts('build/shp.min.js');
   return shp.parseZip(data);
 });
-function populateFields(select, fields) {
-  select.removeChild(select.firstElementChild);
-  select.disabled = false;
-  fields.forEach(function(field) {
-    var option = document.createElement('option');
-    option.value = field;
-    option.innerHTML = field;
-    select.appendChild(option);
-  });
-}
 function handleCsvFile(file) {
   csvDropped = true;
   csvDropdown.firstElementChild.innerHTML = 'Loading csv...';
@@ -227,6 +261,80 @@ dropbox.addEventListener('dragenter', stop, false);
 dropbox.addEventListener('dragover', stop, false);
 dropbox.addEventListener('drop', drop, false);
 csvDropdown.addEventListener('change', handleFieldSelect);
+
+// Save data
+var loginForm = document.getElementById('login-form');
+var authToken;
+function save() {
+  var req = new XMLHttpRequest();
+  req.open('POST', 'https://api.github.com/gists');
+  req.setRequestHeader('Authorization', 'token ' + authToken);
+  req.onload = function() {
+    if (req.status === 201) {
+      var url = JSON.parse(req.responseText).files['map.geojson'].raw_url;
+      var parts = window.location.href.split(/[\?\#]/);
+      window.location.href = parts[0] + '?data=' + encodeURIComponent(url) +
+          '&formula=' + encodeURIComponent(formulaField.value) +
+          window.location.hash;
+    }
+  };
+  req.send(JSON.stringify({
+    description: 'gist from regional-monitoring app',
+    public: true,
+    files: {
+      'map.geojson': {
+        content: JSON.stringify(new ol.format.GeoJSON().writeFeatures(
+            dataLayer.getSource().getFeatures(),
+            {featureProjection: olMap.getView().getProjection()}))
+      }
+    }
+  }));
+}
+function authorize(cb) {
+  var username = document.getElementById('username').value;
+  var password = document.getElementById('password').value;
+  var req = new XMLHttpRequest();
+  req.open('POST', 'https://api.github.com/authorizations');
+  req.setRequestHeader('Authorization', 'Basic ' +
+      btoa(username + ':' + password));
+  req.onload = function() {
+    if (req.status === 201) {
+      authToken = JSON.parse(req.responseText).token;
+      cb();
+    }
+  };
+  req.send(JSON.stringify({
+    scopes: ['gist'],
+    note: 'gist for regional-monitoring app',
+    fingerprint: String(Math.random())
+  }));
+}
+saveButton.addEventListener('click', function() {
+  if (args.data && formulaField.value) {
+    window.location.href =
+        window.location.search + '&formula=' + formulaField.value;
+    return;
+  }
+  if (!authToken) {
+    window.location.href = '#modal-login';
+  } else {
+    save();
+  }
+});
+loginForm.addEventListener('submit', function() {
+  window.location.href = '#!';
+  authorize(save);
+});
+
+// Load GeoJSON
+var loadForm = document.getElementById('load-form');
+loadButton.addEventListener('click', function() {
+  window.location.href = '#modal-load';
+});
+loadForm.addEventListener('submit', function() {
+  window.location.href = '?data=' +
+      encodeURIComponent(document.getElementById('geojsonurl').value) + '#!';
+});
 
 // Popup overlay for feature info.
 var container = document.getElementById('popup');
