@@ -85,8 +85,8 @@ var shpDropdown = document.getElementById('shpkey');
 var renderButton = document.getElementById('renderbutton');
 var formulaField = document.getElementById('formula');
 var configForm = document.getElementById('config');
-var saveButton = document.getElementById('save');
-var loadButton = document.getElementById('load');
+var saveButton = document.getElementById('savebutton');
+var loadButton = document.getElementById('loadbutton');
 function populateFields(select, fields) {
   select.removeChild(select.firstElementChild);
   select.disabled = false;

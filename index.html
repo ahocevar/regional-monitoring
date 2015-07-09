@@ -12,7 +12,7 @@
       </div>
       <form id="config" class="navbar-form navbar-right" action="javascript:void(0)">
         <div class="form-group">
-          <button id="load" title="Load GeoJSON" class="btn btn-default"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span></button>
+          <button id="loadbutton" title="Load GeoJSON" class="btn btn-default" type="button"><span class="glyphicon glyphicon-cloud-download" aria-hidden="true"></span></button>
           <select disabled id="shpkey" class="form-control">
             <option>Drag shp .zip to map</option>
             <option>Select shp merge field</option>
@@ -27,7 +27,7 @@
               <button disabled id="renderbutton" class="btn btn-default" type="submit">Render!</button>
             </span>
           </div>
-          <button id="save" disabled title="Save" class="btn btn-default"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span></button>
+          <button id="savebutton" disabled title="Save" class="btn btn-default"><span class="glyphicon glyphicon-cloud-upload" aria-hidden="true"></span></button>
           &nbsp;
         </div>
       </form>
@@ -58,7 +58,7 @@
           <h3 id="label-login">Load GeoJSON</h3>
           <form id="load-form" action="javascript:void(0)">
             <input id="geojsonurl" type="text" class="form-control" placeholder="GeoJSON url"><br>
-            <button id="load" type="submit" class="btn btn-default">Load</button>
+            <button type="submit" class="btn btn-default">Load</button>
           </form>
         </div>
       </div>
