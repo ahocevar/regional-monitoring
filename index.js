@@ -4,7 +4,6 @@ require('./index.css');
 
 var cw = require('catiline');
 var ol = require('openlayers/dist/ol');
-var shp = require('shpjs');
 var ss = require('simple-statistics');
 
 // Base map
