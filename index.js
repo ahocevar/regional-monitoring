@@ -309,7 +309,7 @@ function authorize(cb) {
   }));
 }
 saveButton.addEventListener('click', function() {
-  if (args.data && formulaField.value) {
+  if (args.data && !csvFields && formulaField.value) {
     window.location.href =
         window.location.search + '&formula=' + formulaField.value;
     return;
