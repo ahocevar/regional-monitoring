@@ -9,7 +9,7 @@ var ss = require('simple-statistics');
 // Base map
 var baseLayer = new ol.layer.Tile();
 var xhr = new XMLHttpRequest();
-xhr.open('GET', 'http://www.basemap.at/wmts/1.0.0/WMTSCapabilities.xml');
+xhr.open('GET', 'https://www.basemap.at/wmts/1.0.0/WMTSCapabilities.xml');
 xhr.onload = function() {
   var caps = new ol.format.WMTSCapabilities().read(xhr.responseText);
   var hiDPI = ol.has.DEVICE_PIXEL_RATIO >= 1.5;
